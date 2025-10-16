@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { use, useEffect, useState } from "react";
 import { Headphones, Play, Pause, SkipForward, SkipBack, Volume2, Download, Heart } from "lucide-react";
 import { Card, CardContent } from "../ui/card";
 import { Button } from "../ui/button";
@@ -30,6 +30,62 @@ const currentPlaying = {
 export function AudioLibrary() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState([75]);
+  const [progress, setProgress] = useState(currentPlaying.progress);
+  const [current, setCurrent] = useState(currentPlaying.current);
+
+  const onChangeProgress = (value: number) => {
+    setProgress(value);
+    // Tính toán lại thời gian hiện tại dựa trên progress
+    const [totalMins, totalSecs] = currentPlaying.duration.split(":").map((t) => parseInt(t));
+    const totalDurationSec = totalMins * 60 + totalSecs;
+    const currentSec = Math.floor((value / 100) * totalDurationSec);
+    const currentMins = Math.floor(currentSec / 60);
+    const currentRemainingSecs = currentSec % 60;
+    setCurrent(`${currentMins}:${currentRemainingSecs < 10 ? "0" + currentRemainingSecs : currentRemainingSecs}`);
+  }
+
+  const onPlayAudio = () => {
+    let interval: NodeJS.Timeout | null = null;
+
+    if (isPlaying) {
+      interval = setInterval(() => {
+        // cập nhật current theo cách an toàn
+        setCurrent((prev) => {
+          let [minutes, seconds] = prev.split(":").map((t) => parseInt(t));
+          seconds += 1;
+          if (seconds >= 60) {
+            minutes += 1;
+            seconds = 0;
+          }
+
+          const [totalMins, totalSecs] = currentPlaying.duration.split(":").map((t) => parseInt(t));
+          const totalDurationSec = totalMins * 60 + totalSecs;
+          const totalSeconds = minutes * 60 + seconds;
+
+          // nếu vượt quá thời lượng → dừng
+          if (totalSeconds >= totalDurationSec) {
+            setIsPlaying(false);
+            setProgress(100);
+            if (interval) clearInterval(interval);
+            return currentPlaying.duration;
+          }
+
+          // cập nhật progress
+          setProgress(Math.floor((totalSeconds / totalDurationSec) * 100));
+
+          return `${minutes}:${seconds < 10 ? "0" + seconds : seconds}`;
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }
+
+  useEffect(() => {
+    onPlayAudio();
+  }, [isPlaying])
 
   return (
     <div className="space-y-6">
@@ -60,9 +116,9 @@ export function AudioLibrary() {
           </div>
 
           <div className="space-y-2 mb-4">
-            <Slider value={[currentPlaying.progress]} max={100} step={1} />
+            <Slider value={[progress]} onValueChange={onChangeProgress} max={100} step={1} />
             <div className="flex items-center justify-between text-sm text-muted-foreground">
-              <span>{currentPlaying.current}</span>
+              <span>{current}</span>
               <span>{currentPlaying.duration}</span>
             </div>
           </div>
@@ -70,23 +126,26 @@ export function AudioLibrary() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 flex-1">
               <Volume2 className="h-4 w-4 text-muted-foreground" />
-              <Slider 
-                value={volume} 
+              <Slider
+                value={volume}
                 onValueChange={setVolume}
-                max={100} 
-                step={1} 
+                max={100}
+                step={1}
                 className="w-24"
               />
             </div>
-            
+
             <div className="flex items-center gap-2">
               <Button variant="outline" size="icon">
                 <SkipBack className="h-4 w-4" />
               </Button>
-              <Button 
-                size="icon" 
+              <Button
+                size="icon"
                 className="h-12 w-12"
-                onClick={() => setIsPlaying(!isPlaying)}
+                onClick={() => {
+                  setIsPlaying(!isPlaying)
+                  onPlayAudio();
+                }}
               >
                 {isPlaying ? (
                   <Pause className="h-5 w-5" />
@@ -100,7 +159,7 @@ export function AudioLibrary() {
             </div>
 
             <div className="flex-1 flex justify-end gap-2">
-              <Badge variant="secondary">1.5x</Badge>
+              <Badge variant="secondary">1.0x</Badge>
               <Badge variant="secondary">Giọng Nam Bắc</Badge>
             </div>
           </div>
@@ -115,7 +174,7 @@ export function AudioLibrary() {
               <TabsTrigger value="recent">Nghe gần đây</TabsTrigger>
               <TabsTrigger value="favorites">Yêu thích</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="recent">
               <ScrollArea className="h-96">
                 <div className="space-y-2">

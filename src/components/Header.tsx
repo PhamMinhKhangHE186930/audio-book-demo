@@ -21,6 +21,8 @@ export function Header({ toggleSidebar }: HeaderProps) {
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-4 flex-1">
           <Button 
+            variant="ghost" 
+            size="icon"
             onClick={toggleSidebar}
             className="lg:hidden"
           >
@@ -46,9 +48,9 @@ export function Header({ toggleSidebar }: HeaderProps) {
               <Button variant="ghost" className="gap-2 px-2">
                 <Avatar className="h-8 w-8">
                   <AvatarImage src="" />
-                  <AvatarFallback>NV</AvatarFallback>
+                  <AvatarFallback>KD</AvatarFallback>
                 </Avatar>
-                <span className="hidden md:inline">Nguyễn Văn A</span>
+                <span className="hidden md:inline">Kiều Đức Hoàn</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
