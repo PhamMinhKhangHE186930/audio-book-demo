@@ -1,4 +1,4 @@
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useRef, useState } from "react";
 import { Headphones, Play, Pause, SkipForward, SkipBack, Volume2, Download, Heart } from "lucide-react";
 import { Card, CardContent } from "../ui/card";
 import { Button } from "../ui/button";
@@ -33,6 +33,8 @@ export function AudioLibrary() {
   const [progress, setProgress] = useState(currentPlaying.progress);
   const [current, setCurrent] = useState(currentPlaying.current);
 
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
   const onChangeProgress = (value: number) => {
     setProgress(value);
     // Tính toán lại thời gian hiện tại dựa trên progress
@@ -45,11 +47,11 @@ export function AudioLibrary() {
   }
 
   const onPlayAudio = () => {
-    let interval: NodeJS.Timeout | null = null;
-
     if (isPlaying) {
-      interval = setInterval(() => {
-        // cập nhật current theo cách an toàn
+      // Trước khi tạo interval mới, luôn xoá interval cũ (nếu có)
+      if (intervalRef.current) clearInterval(intervalRef.current);
+
+      intervalRef.current = setInterval(() => {
         setCurrent((prev) => {
           let [minutes, seconds] = prev.split(":").map((t) => parseInt(t));
           seconds += 1;
@@ -62,24 +64,28 @@ export function AudioLibrary() {
           const totalDurationSec = totalMins * 60 + totalSecs;
           const totalSeconds = minutes * 60 + seconds;
 
-          // nếu vượt quá thời lượng → dừng
           if (totalSeconds >= totalDurationSec) {
             setIsPlaying(false);
             setProgress(100);
-            if (interval) clearInterval(interval);
+            if (intervalRef.current) clearInterval(intervalRef.current);
             return currentPlaying.duration;
           }
 
-          // cập nhật progress
           setProgress(Math.floor((totalSeconds / totalDurationSec) * 100));
-
           return `${minutes}:${seconds < 10 ? "0" + seconds : seconds}`;
         });
       }, 1000);
+    } else {
+      // Khi pause → dừng interval
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
     }
 
+    // Khi component unmount → clear interval
     return () => {
-      if (interval) clearInterval(interval);
+      if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }
 
