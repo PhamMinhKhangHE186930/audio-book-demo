@@ -24,14 +24,14 @@ export function Sidebar({ activeSection, setActiveSection, isOpen, setIsOpen }: 
     <>
       {/* Overlay for mobile */}
       {isOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
           onClick={() => setIsOpen(false)}
         />
       )}
 
       {/* Sidebar */}
-      <aside 
+      <aside
         className={cn(
           "fixed lg:static inset-y-0 left-0 z-50 w-64 bg-card border-r border-border flex flex-col transition-transform duration-300",
           isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
@@ -40,14 +40,15 @@ export function Sidebar({ activeSection, setActiveSection, isOpen, setIsOpen }: 
         <div className="p-6 border-b border-border flex items-center justify-between">
           <div className="flex items-center gap-2">
             {/* <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center"> */}
-              {/* <BookOpen className="h-5 w-5 text-primary-foreground" /> */}
-              <img src="/logo.jpg" alt="Logo" style={{height: '40px', width: '40px', borderRadius: "5px"}} className="text-primary-foreground" />
+            {/* <BookOpen className="h-5 w-5 text-primary-foreground" /> */}
+            <img src="/logo_HVNH.jpg" alt="logo_HVNH" style={{ height: '40px', width: '40px', borderRadius: "5px" }} className="text-primary-foreground" />
+            <img src="/logo.jpg" alt="Logo" style={{ height: '40px', width: '40px', borderRadius: "5px" }} className="text-primary-foreground" />
             {/* </div> */}
             <span className="font-semibold">AudioBook</span>
           </div>
-          <Button 
-            variant="ghost" 
-            size="icon" 
+          <Button
+            variant="ghost"
+            size="icon"
             className="lg:hidden"
             onClick={() => setIsOpen(false)}
           >
